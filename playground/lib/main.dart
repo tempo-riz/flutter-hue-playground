@@ -42,8 +42,7 @@ class _HomePageState extends State<HomePage> {
   final List<String> bridgeIps = [];
 
   /// Controls the bridge discovery process.
-  final DiscoveryTimeoutController timeoutController =
-      DiscoveryTimeoutController(timeoutSeconds: 25);
+  final DiscoveryTimeoutController timeoutController = DiscoveryTimeoutController(timeoutSeconds: 25);
 
   /// Cancels the "first contact" action.
   VoidCallback? onContactCancel;
@@ -60,15 +59,25 @@ class _HomePageState extends State<HomePage> {
   /// Watches for deep links.
   late final StreamSubscription deepLinkStream;
 
+  String txt = "No deep link";
+
   @override
   void initState() {
     super.initState();
 
     deepLinkStream = uriLinkStream.listen(
       (Uri? uri) {
-        print("\n\n\n\nDeep link: $uri\n\n\n\n");
+        
+        print("URI: $uri");
+
+        setState(() {
+          txt = "uri is null";
+        });
 
         if (uri == null) return;
+        setState(() {
+          txt = uri.toString();
+        });
 
         final int start = uri.toString().indexOf("?");
         String queryParams = uri.toString().substring(start);
@@ -77,8 +86,7 @@ class _HomePageState extends State<HomePage> {
         try {
           final String? pkce = truncatedUri.queryParameters[ApiFields.pkce];
           final String? code = truncatedUri.queryParameters[ApiFields.code];
-          final String? resState =
-              truncatedUri.queryParameters[ApiFields.state];
+          final String? resState = truncatedUri.queryParameters[ApiFields.state];
 
           // Handle Flutter Hue deep link
           if (pkce != null && code != null && resState != null) {
@@ -92,7 +100,6 @@ class _HomePageState extends State<HomePage> {
             print("PKCE: $pkce");
             print("Code: $code");
             print("State: $stateSecret");
-            
 
             TokenRepo.fetchRemoteToken(
               clientId: clientId,
@@ -100,8 +107,7 @@ class _HomePageState extends State<HomePage> {
               pkce: pkce,
               code: code,
               stateSecret: stateSecret,
-              decrypter: (ciphertext) =>
-                  ciphertext.substring(4, ciphertext.length - 4),
+              decrypter: (ciphertext) => ciphertext.substring(4, ciphertext.length - 4),
             );
           }
         } catch (_) {
@@ -203,6 +209,9 @@ class _HomePageState extends State<HomePage> {
                 onPressed: bridge == null ? null : remoteContact,
                 child: const Text("Establish Remote Contact"),
               ),
+              const SizedBox(height: padding * 2),
+
+              Text(txt ?? "No deep link"),
 
               const SizedBox(height: padding * 2),
 
@@ -264,22 +273,19 @@ class _HomePageState extends State<HomePage> {
 
                     // GREEN
                     ElevatedButton(
-                      onPressed:
-                          light == null ? null : () => colorLight("green"),
+                      onPressed: light == null ? null : () => colorLight("green"),
                       child: const Text("Green"),
                     ),
 
                     // BLUE
                     ElevatedButton(
-                      onPressed:
-                          light == null ? null : () => colorLight("blue"),
+                      onPressed: light == null ? null : () => colorLight("blue"),
                       child: const Text("Blue"),
                     ),
 
                     // WHITE
                     ElevatedButton(
-                      onPressed:
-                          light == null ? null : () => colorLight("white"),
+                      onPressed: light == null ? null : () => colorLight("white"),
                       child: const Text("White"),
                     ),
                   ],
@@ -360,7 +366,6 @@ class _HomePageState extends State<HomePage> {
   }
 
   Future<void> fetchSavedBridges() async {
-
     setState(() {
       isLoading = true;
     });
@@ -440,8 +445,7 @@ class _HomePageState extends State<HomePage> {
       isLoading = true;
     });
 
-    final List<Map<String, dynamic>>? res =
-        await bridge!.getResource(ResourceType.bridge);
+    final List<Map<String, dynamic>>? res = await bridge!.getResource(ResourceType.bridge);
 
     try {
       // ignore: unused_local_variable
@@ -466,8 +470,7 @@ class _HomePageState extends State<HomePage> {
       isLoading = true;
     });
 
-    final Map<String, dynamic>? res =
-        (await bridge!.getResource(ResourceType.light))?.first;
+    final Map<String, dynamic>? res = (await bridge!.getResource(ResourceType.light))?.first;
 
     // ignore: unused_local_variable
     Light light = Light.fromJson(res ?? {});
@@ -543,8 +546,7 @@ class _HomePageState extends State<HomePage> {
       y = 0.3127;
     }
 
-    light = light!
-        .copyWith(color: light!.color.copyWith(xy: LightColorXy(x: x, y: y)));
+    light = light!.copyWith(color: light!.color.copyWith(xy: LightColorXy(x: x, y: y)));
 
     await bridge!.put(light!);
 
